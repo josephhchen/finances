@@ -61,39 +61,44 @@ A modern, AI-powered financial budgeting application built with React Native and
 
 ## Architecture
 
-The application follows a clean architecture pattern with clear separation of concerns:
+The application follows a microservices architecture with clear separation between frontend, backend, and AI services:
 
 ```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components (Button, Input, Card)
-│   └── common/         # Domain-specific components
-├── screens/            # Screen components
-├── stores/             # Zustand state management
-├── services/           # API and external service integrations
-│   ├── ai/            # LLM integration and prompt management
-│   ├── api/           # Backend API communication
-│   └── storage/       # Data persistence layer
-├── prompts/            # Structured prompts for LLM interactions
-├── types/              # TypeScript type definitions
-├── utils/              # Utility functions and helpers
-└── constants/          # App constants and configuration
+budget-tracker/
+├── apps/
+│   └── mobile/             # React Native mobile app
+│       ├── app/           # Expo Router screens
+│       ├── src/           # Components, stores, services
+│       └── assets/        # Static assets
+├── services/
+│   ├── backend/           # Go REST API server
+│   │   ├── internal/      # Go application code
+│   │   ├── models/        # Database models
+│   │   └── api/           # HTTP handlers
+│   └── ai/                # Python AI/LLM service
+│       ├── app/           # FastAPI application
+│       ├── services/      # LLM integration
+│       └── prompts/       # Structured prompts
+├── packages/
+│   ├── types/             # Shared TypeScript types
+│   └── shared/            # Common utilities
+└── docker-compose.yml     # Development environment
 ```
 
-### AI Integration Architecture
+### Service Communication Architecture
 
 ```
-Frontend (React Native)
-    ↓ User Financial Data
-Backend (Go) + Prompt Engineering
-    ↓ Structured Prompts + Context
-LLM Provider (GPT-4/Claude)
-    ↓ AI Response
-RAG System (Vector DB)
-    ↓ Validated Output
+Mobile App (React Native + Expo)
+    ↓ HTTP/REST API
+Backend Service (Go + PostgreSQL)
+    ↓ HTTP/gRPC
+AI Service (Python + FastAPI)
+    ↓ LLM API Calls
+OpenAI/Anthropic + Vector DB
+    ↓ Structured Responses
 Guardrails & Validation
-    ↓ Safe Response
-Frontend (User Interface)
+    ↓ Safe Financial Advice
+Mobile App (User Interface)
 ```
 
 ## Getting Started
@@ -192,11 +197,4 @@ The app uses strongly-typed data models:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support, email support@budgettracker.com or join our [Discord community](https://discord.gg/budgettracker).
 # index

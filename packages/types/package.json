@@ -1,0 +1,21 @@
+{
+  "name": "@budget-tracker/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Budget Tracker",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  }
+}
