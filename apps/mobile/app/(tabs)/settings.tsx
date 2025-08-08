@@ -14,7 +14,8 @@ import {
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { useThemeStore } from '@/src/stores/themeStore';
+import { useTheme, useThemeMode, useAppDispatch } from '@/src/stores/hooks';
+import { toggleTheme } from '@/src/stores/themeSlice';
 
 interface SettingsItemProps {
   icon: React.ReactNode;
@@ -33,7 +34,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
   rightComponent,
   showChevron = true,
 }) => {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
 
   return (
     <TouchableOpacity
@@ -67,11 +68,13 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
 };
 
 export default function SettingsScreen() {
-  const { theme, mode, toggleTheme } = useThemeStore();
+  const theme = useTheme();
+  const mode = useThemeMode();
+  const dispatch = useAppDispatch();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
   const handleThemeToggle = () => {
-    toggleTheme();
+    dispatch(toggleTheme());
   };
 
   const handleNotificationToggle = () => {

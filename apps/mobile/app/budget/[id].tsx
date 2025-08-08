@@ -4,11 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 
-import { useThemeStore } from '@/src/stores/themeStore';
+import { useTheme } from '@/src/stores/hooks';
 import { Button } from '@/src/components/ui';
 
 export default function BudgetDetailScreen() {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
   const { id } = useLocalSearchParams();
 
   const handleGoBack = () => {

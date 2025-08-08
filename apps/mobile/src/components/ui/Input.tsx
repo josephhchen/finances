@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useThemeStore } from '../../stores/themeStore';
+import { useTheme } from '../../stores/hooks';
 
 interface InputProps {
   label?: string;
@@ -32,7 +32,7 @@ export const Input: React.FC<InputProps> = ({
   leftIcon,
   rightIcon,
 }) => {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
   const borderColor = useSharedValue(theme.colors.border);
 
   const animatedBorderStyle = useAnimatedStyle(() => ({
@@ -64,7 +64,8 @@ export const Input: React.FC<InputProps> = ({
     leftIcon && { paddingLeft: 48 },
     rightIcon && { paddingRight: 48 },
     disabled && { opacity: 0.6 },
-  ].filter(Boolean);
+    multiline && { textAlignVertical: 'top' as const },
+  ];
 
   return (
     <View style={styles.container}>
@@ -81,7 +82,7 @@ export const Input: React.FC<InputProps> = ({
         )}
         <Animated.View style={[styles.inputWrapper, animatedBorderStyle]}>
           <TextInput
-            style={inputStyle}
+            style={inputStyle as any}
             placeholder={placeholder}
             placeholderTextColor={theme.colors.textSecondary}
             value={value}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Transaction } from '../../types';
-import { useThemeStore } from '../../stores/themeStore';
+import { useTheme } from '../../stores/hooks';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -12,7 +12,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   transaction,
   onPress,
 }) => {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
 
   const getCategoryIcon = (category: string) => {
     const iconMap: Record<string, string> = {

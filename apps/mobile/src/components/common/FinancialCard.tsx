@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Card } from '../ui';
-import { useThemeStore } from '../../stores/themeStore';
+import { useTheme } from '../../stores/hooks';
 
 interface FinancialCardProps {
   title: string;
@@ -25,7 +25,7 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
   icon,
   onPress,
 }) => {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
 
   const formatAmount = (value: number) => {
     return `${currency}${Math.abs(value).toLocaleString('en-US', {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useThemeStore } from '../../stores/themeStore';
+import { useTheme } from '../../stores/hooks';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -28,8 +28,13 @@ export const Button: React.FC<ButtonProps> = ({
   icon,
   style,
 }) => {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
   const scale = useSharedValue(1);
+
+  // Get the contrasting color for text/icons based on button background
+  const getContrastColor = (bgColor: string) => {
+    return bgColor === theme.colors.primary ? theme.colors.surface : theme.colors.primary;
+  };
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -58,9 +63,13 @@ export const Button: React.FC<ButtonProps> = ({
     const variantStyles = {
       primary: {
         backgroundColor: disabled ? theme.colors.border : theme.colors.primary,
+        borderWidth: 0,
+        borderColor: 'transparent',
       },
       secondary: {
         backgroundColor: disabled ? theme.colors.border : theme.colors.secondary,
+        borderWidth: 0,
+        borderColor: 'transparent',
       },
       outline: {
         backgroundColor: 'transparent',
@@ -69,6 +78,8 @@ export const Button: React.FC<ButtonProps> = ({
       },
       ghost: {
         backgroundColor: 'transparent',
+        borderWidth: 0,
+        borderColor: 'transparent',
       },
     };
 
@@ -88,8 +99,8 @@ export const Button: React.FC<ButtonProps> = ({
     };
 
     const variantTextStyles = {
-      primary: { color: '#FFFFFF' },
-      secondary: { color: '#FFFFFF' },
+      primary: { color: getContrastColor(theme.colors.primary) },
+      secondary: { color: getContrastColor(theme.colors.secondary) },
       outline: { color: disabled ? theme.colors.textSecondary : theme.colors.primary },
       ghost: { color: disabled ? theme.colors.textSecondary : theme.colors.text },
     };
@@ -118,7 +129,11 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {loading ? (
         <ActivityIndicator 
-          color={variant === 'primary' || variant === 'secondary' ? '#FFFFFF' : theme.colors.primary} 
+          color={
+            variant === 'primary' ? getContrastColor(theme.colors.primary) :
+            variant === 'secondary' ? getContrastColor(theme.colors.secondary) :
+            theme.colors.primary
+          } 
           size="small" 
         />
       ) : (

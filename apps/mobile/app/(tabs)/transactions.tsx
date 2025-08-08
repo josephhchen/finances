@@ -5,13 +5,13 @@ import { router } from 'expo-router';
 import { Plus, Filter, Search } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { useThemeStore } from '@/src/stores/themeStore';
+import { useTheme } from '@/src/stores/hooks';
 import { useFinancialStore } from '@/src/stores/financialStore';
 import { TransactionItem } from '@/src/components/common';
 import { Button, Input } from '@/src/components/ui';
 
 export default function TransactionsScreen() {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
   const { transactions } = useFinancialStore();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -35,7 +35,7 @@ export default function TransactionsScreen() {
           onPress={handleAddTransaction}
           style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
         >
-          <Plus size={20} color="#FFFFFF" />
+          <Plus size={20} color={theme.colors.surface} />
         </TouchableOpacity>
       </Animated.View>
 

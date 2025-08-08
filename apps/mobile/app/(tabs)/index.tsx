@@ -1,33 +1,82 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Plus, Eye, EyeOff } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Plus, Eye, EyeOff, Landmark } from 'lucide-react-native';
+import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 
-import { useThemeStore } from '@/src/stores/themeStore';
-import { useFinancialStore } from '@/src/stores/financialStore';
+import { useTheme } from '@/src/stores/hooks';
 import { FinancialCard, TransactionItem } from '@/src/components/common';
 import { Button } from '@/src/components/ui';
+import { PlaidLinkButton } from '@/src/components/plaid/PlaidLinkButton';
+import { AccountCard } from '@/src/components/accounts/AccountCard';
+import { BudgetSuggestionsCard } from '@/src/components/ai/BudgetSuggestionsCard';
+import { databaseService } from '@/src/services/database';
+import { plaidService } from '@/src/services/plaidService';
+import { Account, Transaction } from '@/src/types/financial';
+import { formatCurrency } from '@/src/utils/format';
 
 export default function DashboardScreen() {
-  const { theme } = useThemeStore();
-  const { 
-    getTotalBalance, 
-    getMonthlyIncome, 
-    getMonthlyExpenses, 
-    transactions 
-  } = useFinancialStore();
-  
-  const [balanceVisible, setBalanceVisible] = React.useState(true);
+  const theme = useTheme();
+  const [balanceVisible, setBalanceVisible] = useState(true);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const totalBalance = getTotalBalance();
-  const monthlyIncome = getMonthlyIncome();
-  const monthlyExpenses = getMonthlyExpenses();
+  useEffect(() => {
+    initializeDatabase();
+  }, []);
+
+  const initializeDatabase = async () => {
+    try {
+      await databaseService.initialize();
+      await loadData();
+    } catch (error) {
+      console.error('Error initializing database:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      const [accountsData, transactionsData] = await Promise.all([
+        databaseService.getAccounts(),
+        databaseService.getTransactions(50)
+      ]);
+      
+      setAccounts(accountsData);
+      setTransactions(transactionsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  };
+
+  const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+  const currentMonth = new Date();
+  const monthlyTransactions = transactions.filter(t => 
+    t.date.getMonth() === currentMonth.getMonth() &&
+    t.date.getFullYear() === currentMonth.getFullYear()
+  );
+  const monthlyIncome = monthlyTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  const monthlyExpenses = monthlyTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
   const recentTransactions = transactions.slice(0, 5);
 
   const handleAddTransaction = () => {
     router.push('/add-transaction');
+  };
+
+  const handlePlaidSuccess = async (accountIds: string[]) => {
+    await loadData();
+  };
+
+  const handleSyncToggle = async (account: Account) => {
+    // Toggle sync functionality would be implemented here
+    console.log('Toggle sync for account:', account.name);
   };
 
   return (
@@ -38,27 +87,29 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
-          <View>
+        <Animated.View entering={FadeInUp.duration(600)} style={styles.header}>
+          <Animated.View entering={FadeInUp.duration(800).delay(100)}>
             <Text style={[styles.greeting, { color: theme.colors.textSecondary }]}>
               Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}!
             </Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
               Financial Overview
             </Text>
-          </View>
-          <TouchableOpacity 
-            onPress={() => setBalanceVisible(!balanceVisible)}
-            style={[styles.eyeButton, { backgroundColor: theme.colors.surface }]}
-          >
-            {balanceVisible ? 
-              <Eye size={20} color={theme.colors.textSecondary} /> : 
-              <EyeOff size={20} color={theme.colors.textSecondary} />
-            }
-          </TouchableOpacity>
+          </Animated.View>
+          <Animated.View entering={SlideInRight.duration(700).delay(200)}>
+            <TouchableOpacity 
+              onPress={() => setBalanceVisible(!balanceVisible)}
+              style={[styles.eyeButton, { backgroundColor: theme.colors.surface }]}
+              activeOpacity={0.7}
+            >
+              {balanceVisible ? 
+                <Eye size={20} color={theme.colors.textSecondary} /> : 
+                <EyeOff size={20} color={theme.colors.textSecondary} />
+              }
+            </TouchableOpacity>
+          </Animated.View>
         </Animated.View>
 
-        {/* Balance Card */}
         <Animated.View entering={FadeInDown.duration(500).delay(100)}>
           <FinancialCard
             title="Total Balance"
@@ -89,17 +140,58 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
-        {/* Quick Actions */}
-        <Animated.View entering={FadeInDown.duration(700).delay(300)} style={styles.quickActions}>
+        {/* AI Budget Suggestions */}
+        <Animated.View entering={FadeInDown.duration(600).delay(250)}>
+          <BudgetSuggestionsCard />
+        </Animated.View>
+
+        {/* Accounts Section */}
+        {accounts.length > 0 && (
+          <Animated.View entering={FadeInDown.duration(700).delay(300)} style={styles.accountsSection}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+              Your Accounts
+            </Text>
+            {accounts.slice(0, 2).map((account, index) => (
+              <Animated.View 
+                key={account.id}
+                entering={FadeInDown.duration(300).delay(350 + index * 100)}
+              >
+                <AccountCard 
+                  account={account}
+                  onSyncToggle={handleSyncToggle}
+                />
+              </Animated.View>
+            ))}
+            {accounts.length > 2 && (
+              <TouchableOpacity 
+                style={styles.viewAllAccounts}
+                onPress={() => console.log('View all accounts - navigation would be implemented here')}
+              >
+                <Text style={[styles.viewAllText, { color: theme.colors.text }]}>
+                  View all {accounts.length} accounts
+                </Text>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
+        )}
+
+        <Animated.View entering={FadeInDown.duration(700).delay(400)} style={styles.quickActions}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
             Quick Actions
           </Text>
           <View style={styles.actionButtons}>
+            {accounts.length === 0 && (
+              <PlaidLinkButton
+                title="Link Bank Account"
+                onSuccess={handlePlaidSuccess}
+                variant="outline"
+              />
+            )}
             <Button
-              title="Add Transaction"
+              title="Add Manual Transaction"
               onPress={handleAddTransaction}
-              icon={<Plus size={18} color="#FFFFFF" />}
-              fullWidth
+              icon={<Plus size={18} color={theme.colors.surface} />}
+              variant={accounts.length === 0 ? "primary" : "primary"}
             />
           </View>
         </Animated.View>
@@ -111,7 +203,7 @@ export default function DashboardScreen() {
               Recent Transactions
             </Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/transactions')}>
-              <Text style={[styles.seeAll, { color: theme.colors.primary }]}>
+              <Text style={[styles.seeAll, { color: theme.colors.text }]}>
                 See All
               </Text>
             </TouchableOpacity>
@@ -130,7 +222,10 @@ export default function DashboardScreen() {
               </Animated.View>
             ))
           ) : (
-            <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
+            <View style={[styles.emptyState, { 
+              backgroundColor: theme.colors.surface, 
+              borderColor: theme.colors.border 
+            }]}>
               <Text style={[styles.emptyStateText, { color: theme.colors.textSecondary }]}>
                 No transactions yet. Start by adding your first transaction!
               </Text>
@@ -161,11 +256,13 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 14,
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 0.5,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
+    letterSpacing: -0.5,
   },
   eyeButton: {
     width: 40,
@@ -187,9 +284,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 20,
+    letterSpacing: -0.3,
   },
   actionButtons: {
     gap: 12,
@@ -208,12 +306,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   emptyState: {
-    padding: 32,
-    borderRadius: 12,
+    padding: 40,
+    borderRadius: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderStyle: 'dashed',
   },
   emptyStateText: {
     fontSize: 14,
     textAlign: 'center',
+  },
+  accountsSection: {
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  viewAllAccounts: {
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

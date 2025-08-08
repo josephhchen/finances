@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useThemeStore } from '../../stores/themeStore';
+import { useTheme } from '../../stores/hooks';
 
 interface CardProps {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ export const Card: React.FC<CardProps> = ({
   style,
   onPress,
 }) => {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
 
   const cardStyle = [
     styles.card,

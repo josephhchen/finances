@@ -2,14 +2,18 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 import 'react-native-reanimated';
 
-import { useThemeStore } from '@/src/stores/themeStore';
+import { store, persistor } from '@/src/stores/store';
+import { useTheme, useThemeMode } from '@/src/stores/hooks';
 
 const queryClient = new QueryClient();
 
-export default function RootLayout() {
-  const { theme, mode } = useThemeStore();
+function AppContent() {
+  const theme = useTheme();
+  const mode = useThemeMode();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -57,5 +61,15 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
     </QueryClientProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <AppContent />
+      </PersistGate>
+    </Provider>
   );
 }

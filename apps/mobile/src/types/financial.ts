@@ -18,6 +18,10 @@ export interface Transaction {
   isRecurring?: boolean;
   recurringFrequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
   tags?: string[];
+  plaid_transaction_id?: string;
+  merchant_name?: string;
+  is_pending?: boolean;
+  is_manual?: boolean;
 }
 
 export interface Account {
@@ -29,6 +33,11 @@ export interface Account {
   isActive: boolean;
   createdAt: Date;
   color?: string;
+  plaid_account_id?: string;
+  plaid_item_id?: string;
+  institution_name?: string;
+  last_synced?: Date;
+  sync_enabled?: boolean;
 }
 
 export interface Budget {
@@ -46,6 +55,8 @@ export interface Budget {
     at75Percent: boolean;
     at90Percent: boolean;
   };
+  is_ai_generated?: boolean;
+  ai_reasoning?: string;
 }
 
 export interface BudgetPeriod {
@@ -94,4 +105,70 @@ export interface SpendingInsight {
   confidence: number;
   data?: Record<string, any>;
   createdAt: Date;
+}
+
+// Plaid-specific types
+export interface PlaidLinkResult {
+  public_token: string;
+  metadata: {
+    institution: {
+      name: string;
+      institution_id: string;
+    };
+    accounts: Array<{
+      id: string;
+      name: string;
+      type: string;
+      subtype: string;
+    }>;
+  };
+}
+
+export interface PlaidItem {
+  id: string;
+  item_id: string;
+  access_token: string;
+  institution_name: string;
+  created_at: Date;
+  last_synced?: Date;
+  is_active: boolean;
+}
+
+// AI-specific types
+export interface BudgetSuggestion {
+  category: TransactionCategory;
+  suggested_amount: number;
+  current_spending: number;
+  reasoning: string;
+  priority: 'high' | 'medium' | 'low';
+  savings_potential: number;
+}
+
+export interface FinancialAnalysis {
+  total_income: number;
+  total_expenses: number;
+  net_flow: number;
+  category_breakdown: Array<{
+    category: TransactionCategory;
+    amount: number;
+    percentage: number;
+  }>;
+  spending_trends: Array<{
+    month: string;
+    amount: number;
+  }>;
+  budget_suggestions: BudgetSuggestion[];
+}
+
+export interface AIInsight {
+  id: string;
+  type: 'spending_pattern' | 'saving_opportunity' | 'budget_alert' | 'trend_analysis';
+  title: string;
+  description: string;
+  category?: TransactionCategory;
+  priority: 'high' | 'medium' | 'low';
+  action_suggested?: string;
+  potential_savings?: number;
+  is_read: boolean;
+  created_at: Date;
 }

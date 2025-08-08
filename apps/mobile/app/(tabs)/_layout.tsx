@@ -3,20 +3,21 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { Home, TrendingUp, PieChart, Settings } from 'lucide-react-native';
 
-import { useThemeStore } from '@/src/stores/themeStore';
+import { useTheme } from '@/src/stores/hooks';
 
 export default function TabLayout() {
-  const { theme } = useThemeStore();
+  const theme = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.primary,
+        tabBarActiveTintColor: theme.colors.text,
         tabBarInactiveTintColor: theme.colors.textSecondary,
         headerShown: false,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
+          borderTopWidth: 1,
           paddingBottom: Platform.OS === 'ios' ? 20 : 0,
           height: Platform.OS === 'ios' ? 88 : 64,
         },
