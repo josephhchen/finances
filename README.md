@@ -1,7 +1,3 @@
-# Index
-
-A modern, AI-powered financial budgeting application built with React Native and Expo. This app helps users track expenses, set budgets, and receive intelligent financial insights powered by machine learning.
-
 ## Features
 
 - **Expense Tracking**: Categorize and monitor spending across multiple accounts
